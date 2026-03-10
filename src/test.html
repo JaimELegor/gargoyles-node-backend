@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gargoyles OAuth Test</title>
+</head>
+<body>
+  <h1>OAuth Test</h1>
+  <button id="authBtn">Connect GitHub</button>
+  <div id="result"></div>
+
+  <script>
+    const authBtn = document.getElementById('authBtn');
+    const resultDiv = document.getElementById('result');
+
+    authBtn.addEventListener('click', function() {
+      window.location.href = 'http://localhost:3000/auth/github';
+    });
+
+    // Check for callback on page load
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token');
+    const userData = urlParams.get('user');
+
+    if (token && userData) {
+      // Success - show token info
+      resultDiv.innerHTML = `
+        <h2>✅ OAuth Success!</h2>
+        <p><strong>Token:</strong> ${token.slice(0, 20)}...</p>
+        <p><strong>User:</strong> ${decodeURIComponent(userData)}</p>
+        <button id="submitBtn">Test Filter Submit</button>
+      `;
+
+      // Add submit button listener
+      document.getElementById('submitBtn').addEventListener('click', function() {
+        testSubmit(token);
+      });
+
+      // Clean URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
+
+    async function testSubmit(token) {
+      try {
+        resultDiv.innerHTML += '<p>⏳ Submitting filter...</p>';
+
+        const response = await fetch('http://localhost:3000/filters/test/pr', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            name: 'Frontend Test Filter',
+            description: 'Submitted from test page',
+            params: {},
+            processFunc: '// test function'
+          })
+        });
+
+        const result = await response.json();
+        
+        resultDiv.innerHTML += `
+          <div style="background: ${result.success ? '#d4edda' : '#f8d7da'}; 
+                     padding: 1em; margin: 1em 0; border-radius: 8px; border-left: 4px solid ${result.success ? '#28a745' : '#dc3545'};">
+            <h3>${result.success ? '✅ PR Created!' : '❌ Failed'}</h3>
+            ${result.prUrl ? `<a href="${result.prUrl}" target="_blank" style="background: #0d6efd; color: white; padding: 0.5em 1em; text-decoration: none; border-radius: 4px;">View PR</a>` : ''}
+            <details>
+              <summary>Response Details</summary>
+              <pre style="font-size: 12px; max-height: 200px; overflow: auto; background: #f8f9fa; padding: 1em;">${JSON.stringify(result, null, 2)}</pre>
+            </details>
+          </div>
+        `;
+      } catch (error) {
+        resultDiv.innerHTML += `
+          <div style="background: #f8d7da; padding: 1em; margin: 1em 0; border-radius: 8px; border-left: 4px solid #dc3545;">
+            <h3>❌ Network Error</h3>
+            <p>${error.message}</p>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
