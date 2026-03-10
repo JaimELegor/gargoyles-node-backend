@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import { FilterController } from '../controllers/FilterController';
-import { authenticateToken } from '../middleware/auth';
+import { FilterController } from '../controllers/FilterController.js';
+import { authenticateToken } from '../middleware/auth.js';
 
 export class FilterRouter {
   public router: Router;

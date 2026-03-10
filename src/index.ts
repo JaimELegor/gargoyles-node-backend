@@ -1,8 +1,8 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { AuthRouter } from './routes/AuthRouter';
-import { FilterRouter } from './routes/FilterRouter';
+import { AuthRouter } from './routes/AuthRouter.js';
+import { FilterRouter } from './routes/FilterRouter.js';
 import cookieParser from "cookie-parser";
 
 dotenv.config();
